@@ -1,0 +1,130 @@
+{% extends 'music/base.html' %}
+{% load static %}
+{% block title %}Listener Search Results{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+
+        .listener-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .listener-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .listener-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 2px solid #000;
+        }
+
+        .listener-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .pagination .current-page {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            pointer-events: none;
+            border: 1px solid #ddd;
+        }
+    </style>
+
+    <header>
+        <a href="javascript:history.back()" class="btn-back">Back</a>
+        <h1>Listener Search Results</h1>
+    </header>
+
+    <main>
+        <ul class="listener-list">
+            {% for listener in page_obj %}
+                <li class="listener-item">
+{% if listener.photo_image %}
+    <img class="listener-image" src="{{ listener.photo_image.url }}"
+         alt="{{ listener.user.username }}"
+         onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+{% else %}
+    <img class="listener-image" src="{% static 'images/undefined2.png' %}" alt="{{ listener.user.username }}">
+{% endif %}
+
+                    <a class="listener-name"
+                       href="{% url 'public_listener_artists' listener.user.username %}">{{ listener.user.username }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% else %}
+                <span class="disabled">&laquo; first</span>
+                <span class="disabled">previous</span>
+            {% endif %}
+
+            <span class="current-page">{{ page_obj.number }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% else %}
+                <span class="disabled">next</span>
+                <span class="disabled">last &raquo;</span>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <p>Copyright © 2024 My Music Site</p>
+    </footer>
+{% endblock %}

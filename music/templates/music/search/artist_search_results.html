@@ -1,0 +1,141 @@
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block title %}Artist Search Results{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back, .btn-sort {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .btn-back:hover, .btn-sort:hover {
+            background-color: #5a6268;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .pagination .current-page {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            pointer-events: none;
+            border: 1px solid #ddd;
+        }
+
+        .artist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .artist-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 1px solid #ddd;
+            border-color: black; /* Aggiunta di un contorno nero sottile */
+        }
+
+        .artist-item a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 18px;
+        }
+
+        .artist-item a:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <header>
+        <a href="{% url 'search_profiles' %}" class="btn btn-back">Back to Search</a>
+
+
+        <h1>Artist Search Results for "{{ search_term }}"</h1>
+        <!-- Aggiungi i pulsanti per l'ordinamento -->
+        <div>
+            <a href="?order_by=follower_count" class="btn-sort">Sort by Followers</a>
+            <a href="?order_by=name" class="btn-sort">Sort by Name</a>
+        </div>
+    </header>
+
+    <main>
+        <ul>
+            {% for artist in results %}
+                <li class="artist-item">
+{% if artist.photo_image %}
+    <img src="{{ artist.photo_image.url }}" alt="{{ artist.name }}'s profile picture"
+         onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+{% else %}
+    <img src="{% static 'images/undefined2.png' %}" alt="Default profile picture">
+{% endif %}
+
+                    <a href="{% url 'public_artist_profile' artist.user.username %}">{{ artist.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Paginazione -->
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?order_by={{ order_by }}&page=1">&laquo; first</a>
+                <a href="?order_by={{ order_by }}&page={{ page_obj.previous_page_number }}">previous</a>
+            {% else %}
+                <span class="disabled">&laquo; first</span>
+                <span class="disabled">previous</span>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="current-page">{{ num }}</span>
+                {% else %}
+                    <a href="?order_by={{ order_by }}&page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?order_by={{ order_by }}&page={{ page_obj.next_page_number }}">next</a>
+                <a href="?order_by={{ order_by }}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% else %}
+                <span class="disabled">next</span>
+                <span class="disabled">last &raquo;</span>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <p>Copyright © 2024 My Music Site</p>
+    </footer>
+{% endblock %}

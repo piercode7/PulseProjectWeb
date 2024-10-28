@@ -1,0 +1,12 @@
+Django==4.2.11
+pillow
+requests
+paypalrestsdk
+django-picklefield
+django-q
+redis
+celery  # Puoi specificare una versione compatibile come celery==5.2.7
+kombu  # Rimuovi la versione o specifica una versione compatibile come kombu==5.2.0
+billiard==4.2.0
+numpy
+mutagen

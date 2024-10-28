@@ -1,0 +1,292 @@
+{% extends 'music/base.html' %}
+{% load static %}
+{% block title %}{{ listener.user.username }}'s Playlists{% endblock %}
+
+{% block content %}
+    <style>
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            border: 2px solid black;
+            margin-bottom: 20px;
+        }
+
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .playlists-section {
+            margin-top: 20px;
+        }
+
+        .playlists-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .playlists-section li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .playlists-section li:hover {
+            background-color: #e9ecef;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .playlists-section a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .playlists-section a:hover {
+            color: #0056b3;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .pagination .current-page {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            pointer-events: none;
+            border: 1px solid #ddd;
+        }
+
+
+        .btn-blue {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <header>
+        <a href="javascript:history.back()" class="btn-back">Back</a>
+        <h1>{{ listener.user.username }}'s Playlists</h1>
+    </header>
+
+    <main>
+        <div class="profile-info">
+{% if listener.photo_image %}
+    <img class="profile-image" src="{{ listener.photo_image.url }}" alt="{{ listener.user.username }}"
+         onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+{% else %}
+    <img class="profile-image" src="{% static 'images/undefined2.png' %}" alt="Profile image">
+{% endif %}
+
+            <h2>{{ listener.name }}</h2>
+            <p>{{ listener.bio }}</p>
+            <a href="{% url 'public_listener_artists' username=listener.user.username %}" class="btn-blue">View
+                Artists</a>
+
+        </div>
+
+        <!-- Playlists Created -->
+        <div class="playlists-section">
+            <h3>{{ listener.user.username }}'s Playlists</h3>
+            {% if page_obj_playlists %}
+                <ul>
+                    {% for playlist in page_obj_playlists %}
+                        <li>
+                            <div class="playlist-info">
+                                <a href="{% url 'view_playlist' username=listener.user.username playlist_id=playlist.id %}">
+                                    {{ playlist.title }} ({{ playlist.tracks.count }} songs, {{ playlist.release_date }})
+                                </a>
+
+                                {% if user != listener.user %}
+                                    <!-- Mostra "Like" o "Unlike" in base a se l'utente ha già messo like -->
+                                    {% if playlist.id in liked_playlists_by_user %}
+                                        <button class="btn-unlike btn-unlink-playlist"
+                                                data-playlist-id="{{ playlist.id }}">Unlike
+                                        </button>
+                                    {% else %}
+                                        <button class="btn-like btn-link-playlist" data-playlist-id="{{ playlist.id }}">
+                                            Like
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>This user hasn't created any playlists yet.</p>
+            {% endif %}
+
+            <!-- Pagination for playlists -->
+            <div class="pagination">
+                {% if page_obj_playlists.has_previous %}
+                    <a href="?page_playlists=1">&laquo; first</a>
+                    <a href="?page_playlists={{ page_obj_playlists.previous_page_number }}">previous</a>
+                {% else %}
+                    <span class="disabled">&laquo; first</span>
+                    <span class="disabled">previous</span>
+                {% endif %}
+
+                <span class="current-page">{{ page_obj_playlists.number }}</span>
+
+                {% if page_obj_playlists.has_next %}
+                    <a href="?page_playlists={{ page_obj_playlists.next_page_number }}">next</a>
+                    <a href="?page_playlists={{ page_obj_playlists.paginator.num_pages }}">last &raquo;</a>
+                {% else %}
+                    <span class="disabled">next</span>
+                    <span class="disabled">last &raquo;</span>
+                {% endif %}
+            </div>
+        </div>
+
+
+        <!-- Playlists Liked -->
+        <div class="playlists-section">
+            <h3>Playlists {{ listener.user.username }} Liked</h3>
+            {% if page_obj_liked_playlists %}
+                <ul>
+                    {% for liked_playlist in page_obj_liked_playlists %}
+                        <li>
+                            <div class="playlist-info">
+                                <a href="{% url 'view_playlist' username=liked_playlist.playlist.listener.user.username playlist_id=liked_playlist.playlist.id %}">
+                                    {{ liked_playlist.playlist.title }} ({{ liked_playlist.playlist.tracks.count }}
+                                    songs, {{ liked_playlist.playlist.release_date }})
+                                </a>
+                                <span>by <a
+                                        href="{% url 'public_listener_playlists' username=liked_playlist.playlist.listener.user.username %}">
+                                {{ liked_playlist.playlist.listener.name }}
+                            </a></span>
+                                {% if user == listener.user %}
+                                    <button class="btn-unlike btn-unlink-playlist"
+                                            data-playlist-id="{{ liked_playlist.playlist.id }}">Unlike
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>{{ listener.user.username }} hasn't liked any playlists yet.</p>
+            {% endif %}
+            <!-- Pagination for liked playlists -->
+            <div class="pagination">
+                {% if page_obj_liked_playlists.has_previous %}
+                    <a href="?page_liked_playlists=1">&laquo; first</a>
+                    <a href="?page_liked_playlists={{ page_obj_liked_playlists.previous_page_number }}">previous</a>
+                {% else %}
+                    <span class="disabled">&laquo; first</span>
+                    <span class="disabled">previous</span>
+                {% endif %}
+
+                <span class="current-page">{{ page_obj_liked_playlists.number }}</span>
+
+                {% if page_obj_liked_playlists.has_next %}
+                    <a href="?page_liked_playlists={{ page_obj_liked_playlists.next_page_number }}">next</a>
+                    <a href="?page_liked_playlists={{ page_obj_liked_playlists.paginator.num_pages }}">last &raquo;</a>
+                {% else %}
+                    <span class="disabled">next</span>
+                    <span class="disabled">last &raquo;</span>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Gestione dei like
+            document.querySelectorAll('.btn-link-playlist').forEach(button => {
+                button.addEventListener('click', function () {
+                    const playlistId = this.getAttribute('data-playlist-id');
+                    fetch(`/music/playlist/link/${playlistId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message) {
+                                alert(data.message);
+                                location.reload(); // Ricarica la pagina
+                            } else if (data.error) {
+                                alert('An error occurred: ' + data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                });
+            });
+
+            // Gestione degli unlike
+            document.querySelectorAll('.btn-unlink-playlist').forEach(button => {
+                button.addEventListener('click', function () {
+                    const playlistId = this.getAttribute('data-playlist-id');
+                    fetch(`/music/playlist/unlink/${playlistId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message) {
+                                alert(data.message);
+                                location.reload(); // Ricarica la pagina
+                            } else if (data.error) {
+                                alert('An error occurred: ' + data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                });
+            });
+        });
+    </script>
+{% endblock %}

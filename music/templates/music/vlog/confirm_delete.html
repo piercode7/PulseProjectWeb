@@ -1,0 +1,59 @@
+{% extends 'music/base.html' %}
+
+{% block title %}
+    Confirm Delete
+{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-danger {
+            color: #fff;
+            background-color: #dc3545;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .btn-secondary {
+            color: #fff;
+            background-color: #6c757d;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none; /* Rimuove la sottolineatura */
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            text-decoration: none; /* Assicura che la sottolineatura non appaia anche al passaggio del mouse */
+        }
+
+        .confirmation-text {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .comment-content {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <h2>Confirm Delete</h2>
+    <p class="confirmation-text">Are you sure you want to delete this comment?</p>
+    <p class="comment-content"><strong>{{ comment.content }}</strong></p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a href="{% url 'artist_discussion' username=comment.artist.user.username %}"
+           class="btn btn-secondary">Cancel</a>
+    </form>
+{% endblock %}

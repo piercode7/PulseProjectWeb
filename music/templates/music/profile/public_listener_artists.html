@@ -1,0 +1,185 @@
+{% extends 'music/base.html' %}
+{% load static %}
+{% block title %}{{ listener.user.username }}'s Followed Artists{% endblock %}
+
+{% block content %}
+    <style>
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            border: 2px solid black;
+            margin-bottom: 20px;
+        }
+
+        .artist-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+            border: 2px solid rgba(0, 0, 0, 0.72);
+        }
+
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .followed-artists {
+            margin-top: 20px;
+        }
+
+        .followed-artists ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .followed-artists li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .followed-artists li:hover {
+            background-color: #e9ecef;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .followed-artists a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .followed-artists a:hover {
+            color: #0056b3;
+        }
+
+        .btn-blue {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            padding: 8px 16px;
+            border: 1px solid #007bff;
+            color: #007bff;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .pagination a:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .pagination .current-page {
+            background-color: #007bff;
+            color: white;
+        }
+
+    </style>
+
+    <header>
+        <a href="javascript:history.back()" class="btn-back">Back</a>
+        <h1>{{ listener.user.username }}'s Followed Artists</h1>
+    </header>
+
+    <main>
+        <div class="profile-info">
+{% if listener.photo_image %}
+    <img class="profile-image" src="{{ listener.photo_image.url }}" alt="{{ listener.user.username }}"
+         onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+{% else %}
+    <img class="profile-image" src="{% static 'images/undefined2.png' %}" alt="Profile image">
+{% endif %}
+
+            <h2>{{ listener.name }}</h2>
+            <p>{{ listener.bio }}</p>
+        </div>
+
+        <a href="{% url 'public_listener_playlists' username=listener.user.username %}" class="btn-blue">View
+            Playlists</a>
+        <div class="followed-artists">
+            <h3>Followed Artists</h3>
+            {% if page_obj %}
+                <ul>
+                    {% for follow in page_obj %}
+                        <li>
+                            <div class="artist-info">
+                                {% if follow.followed.photo_image %}
+                                    <img class="artist-image" src="{{ follow.followed.photo_image.url }}"
+                                         alt="{{ follow.followed.name }}">
+                                {% else %}
+                                    <img class="artist-image" src="{% static 'images/undefined2.png' %}"
+                                         alt="Artist image">
+                                {% endif %}
+                                <!-- Mostra il nome dell'artista invece dello username -->
+                                <a href="{% url 'public_artist_profile' follow.followed.user.username %}">{{ follow.followed.name }}</a>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No followed artists.</p>
+            {% endif %}
+        </div>
+
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current-page">{{ page_obj.number }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <p>Copyright © 2024 My Music Site</p>
+    </footer>
+{% endblock %}

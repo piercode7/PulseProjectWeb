@@ -1,0 +1,25 @@
+<!-- templates/music/create_profile.html -->
+{% extends 'music/base.html' %}
+
+{% block title %}
+    Create Profile
+{% endblock %}
+
+{% block content %}
+    <h1>Create Your Profile</h1>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h2>Artist Profile</h2>
+        {{ artist_form.as_p }}
+        <button type="submit" name="artist">Create Artist Profile</button>
+
+        <h2>Listener Profile</h2>
+        {{ listener_form.as_p }}
+        <button type="submit" name="listener">Create Listener Profile</button>
+    </form>
+{% endblock %}

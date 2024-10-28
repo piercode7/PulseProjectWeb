@@ -1,0 +1,155 @@
+{% extends 'music/base.html' %}
+{% load static %}
+{% load music_extras %}
+
+{% block title %}
+    {{ artist.name }}'s Merchandise
+{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn-blue {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            margin-top: 10px; /* Spazio sopra il pulsante */
+        }
+
+        .btn-blue:hover {
+            background-color: #0056b3;
+        }
+
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            border: 2px solid black;
+        }
+
+        .merch-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .merch-item {
+            text-align: center;
+            width: 100%;
+            max-width: 500px; /* Ridotta la larghezza massima */
+            background-color: #f8f9fa;
+            padding: 15px; /* Ridotto il padding */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid #007bff;
+            margin-bottom: 20px;
+        }
+
+        .merch-item img {
+            width: 70%; /* Ridotta la larghezza dell'immagine */
+            height: auto;
+            margin-bottom: 10px;
+            border-radius: 10px;
+        }
+
+        .merch-item h3 {
+            margin-bottom: 10px;
+            font-size: 1.4em; /* Ridotta leggermente la dimensione del font */
+        }
+
+        .merch-item p {
+            margin: 5px 0;
+            font-size: 1em; /* Ridotta leggermente la dimensione del font */
+        }
+
+        .btn-buy {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-buy:hover {
+            background-color: #218838;
+        }
+    </style>
+
+    <header>
+        <button onclick="history.back()" class="btn-back">Back</button>
+        <h1>{{ artist.name }}</h1>
+    {% if artist.photo_image %}
+        <img class="profile-image" src="{{ artist.photo_image.url }}" alt="{{ artist.name }}"
+             onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+    {% else %}
+        <img class="profile-image" src="{% static 'images/undefined2.png' %}" alt="Profile image">
+    {% endif %}
+        <p>{{ artist.bio }}</p>
+        <p><strong>{{ follower_count }} Followers</strong></p> <!-- Nuova linea aggiunta -->
+
+        {% if request.user.is_authenticated and request.user.listenerprofile %}
+            {% if is_following %}
+                <a href="{% url 'unfollow_artist' username=artist.user.username %}">Unfollow</a>
+            {% else %}
+                <a href="{% url 'follow_artist' username=artist.user.username %}">Follow</a>
+            {% endif %}
+        {% endif %}
+    </header>
+
+    <main>
+        <a href="{% url 'public_artist_profile' username=artist.user.username %}" class="btn-blue">View Albums</a>
+        <!-- Pulsante per visualizzare gli album -->
+        <a href="{% url 'artist_discussion' artist.user.username %}" class="btn-blue">Go to Artist Discussion</a>
+        <!-- Pulsante per la Discussione -->
+
+        <h2>Merchandise</h2>
+        {% if merchs %}
+            <div class="merch-container">
+                {% for merch in merchs %}
+                    <div class="merch-item">
+                        {% if merch.image %}
+                            <img src="{{ merch.image.url }}" alt="{{ merch.name }}" class="merch-image">
+                        {% else %}
+                            <p>No image available.</p>
+                        {% endif %}
+                        <h3>{{ merch.name }}</h3>
+                        <p>{{ merch.description }}</p>
+                        <p>Price: ${{ merch.price }}</p>
+                        <p>Quantity: {{ merch.stock_quantity }}</p>
+
+                        {% if request.user.is_authenticated and request.user.listenerprofile %}
+                            <a href="{% url 'buy_merchandise' username=artist.user.username merch_id=merch.id %}"
+                               class="btn-buy">Buy</a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center;">No merchandise available.</p>
+        {% endif %}
+    </main>
+{% endblock %}

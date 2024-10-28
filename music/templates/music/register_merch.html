@@ -1,0 +1,16 @@
+{% extends 'music/base.html' %}
+{% load music_extras %}
+
+{% block content %}
+    <header>
+        <h1>{% if merch %}Edit Merchandise{% else %}Add New Merchandise{% endif %}</h1>
+    </header>
+
+    <main>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Save</button>
+        </form>
+    </main>
+{% endblock %}

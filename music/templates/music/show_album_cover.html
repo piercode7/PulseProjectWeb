@@ -1,0 +1,17 @@
+<!-- show_album_cover.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Copertina di {{ album.title }}</title>
+</head>
+<body>
+<h1>Copertina dell'Album: {{ album.title }}</h1>
+{% if album.cover_image %}
+    <img src="{{ album.cover_image.url }}" alt="Copertina di {{ album.title }}">
+{% else %}
+    <p>Nessuna copertina disponibile per questo album.</p>
+{% endif %}
+</body>
+</html>

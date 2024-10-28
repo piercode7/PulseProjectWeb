@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>My Account</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .account-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+
+        .account-container h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .account-container form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+
+        .back-button, .delete-button {
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .back-button {
+            background-color: #6c757d;
+        }
+
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+
+        .delete-button {
+            background-color: #dd0202;
+        }
+
+        .delete-button:hover {
+            background-color: #a50000;
+        }
+    </style>
+</head>
+<body>
+<div class="account-container">
+    <h1>My Account</h1>
+
+    <!-- Form per inviare il token di cambio email -->
+    <form method="get" action="{% url 'start_email_change' username=user.username %}">
+        <div class="form-group">
+            <button type="submit">Edit Email</button>
+        </div>
+    </form>
+
+    <!-- Form per cambiare la password -->
+    <form method="post">
+        {% csrf_token %}
+        {% for field in password_form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <div style="color: red;">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <div class="form-group">
+            <button type="submit">Change Password</button>
+        </div>
+    </form>
+
+    <!-- Form per la richiesta di eliminazione dell'account -->
+    <form method="post" action="{% url 'request_account_deletion' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <button type="submit" class="delete-button">Delete account</button>
+        </div>
+    </form>
+
+    <!-- Bottone per tornare al profilo privato -->
+    <button class="back-button" onclick="history.back()">Back to My Profile</button>
+</div>
+</body>
+</html>

@@ -1,0 +1,125 @@
+{% extends 'music/base.html' %}
+{% load static %}
+{% load music_extras %}
+
+{% block title %}Profilo Ascoltatore - {{ user.username }}{% endblock %}
+
+{% block content %}
+    <style>
+        .profile-image {
+            width: 150px !important;
+            height: 150px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            display: block !important;
+            border: 2px solid black !important; /* Aggiunge una cornice sottile nera */
+            margin-bottom: 20px; /* Spazio sotto l'immagine */
+        }
+
+        .btn-nav, .btn-save {
+            display: block;
+            width: 100%;
+            max-width: 180px; /* Ridotto la larghezza massima */
+            padding: 8px 12px; /* Ridotto il padding */
+            text-decoration: none;
+            border-radius: 5px; /* Mantiene il raggio di curvatura */
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 1em; /* Dimensione del font */
+            transition: background-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .btn-nav {
+            background-color: #007bff;
+            color: white;
+            height: 40px; /* Altezza uniforme per tutti i pulsanti, ridotta */
+            line-height: 20px; /* Allineamento verticale del testo, ridotto */
+        }
+
+        .btn-nav:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            height: 40px; /* Altezza uniforme per tutti i pulsanti, ridotta */
+            line-height: 20px; /* Allineamento verticale del testo, ridotto */
+        }
+
+        .btn-save:hover {
+            background-color: #218838;
+        }
+
+        .error {
+            margin-top: 20px;
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .error ul {
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+        }
+
+        .error li {
+            margin-bottom: 5px;
+        }
+    </style>
+
+    <header>
+        <h1>Edit Profile</h1>
+    </header>
+
+    <main>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="current-profile-image">
+                {% if user.listenerprofile.photo_image %}
+                    <img class="profile-image" src="{{ user.listenerprofile.photo_image.url }}"
+                         onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+                {% else %}
+                    <img class="profile-image" src="{% static 'images/undefined2.png' %}" alt="Profile image">
+                {% endif %}
+            </div>
+            {{ form.as_p }}
+            <!-- Visualizza i messaggi di errore -->
+            {% if form.errors %}
+                <div class="error">
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <div class="category-nav">
+                <a href="{% url 'my_playlists' user.username %}" class="btn-nav">My Playlists</a>
+                <a href="{% url 'my_interactions' user.username %}" class="btn-nav">My Listenings</a>
+                <a href="{% url 'my_account' user.username %}" class="btn-nav">My Account</a>
+                <a href="{% url 'my_comments' user.username %}" class="btn-nav">My Comments</a>
+                <a href="{% url 'my_shopping' user.username %}" class="btn-nav">My Shopping</a>
+
+
+            </div>
+            <button type="submit" class="btn-save">Save Changes</button>
+        </form>
+    </main>
+
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <p>Copyright © 2024 My Music Site</p>
+    </footer>
+{% endblock %}

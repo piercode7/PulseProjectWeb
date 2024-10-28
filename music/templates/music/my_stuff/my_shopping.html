@@ -1,0 +1,153 @@
+{% extends 'music/base.html' %}
+
+{% block title %}
+    My Shopping
+{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            user-select: none;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+
+        .order-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #343a40;
+        }
+
+        .order-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            background-color: #ffffff;
+        }
+
+        .order-item strong {
+            color: #007bff;
+        }
+
+        .order-item p {
+            margin: 0;
+        }
+
+        .order-item + .order-item {
+            margin-top: 15px;
+        }
+
+        .order-item a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .order-item a:hover {
+            text-decoration: underline;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .pagination .current-page {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            pointer-events: none;
+            border: 1px solid #ddd;
+        }
+    </style>
+
+    <div class="order-container">
+        <a href="{% url 'private_listener_profile' username=request.user.username %}" class="btn-back">Back to
+            Profile</a>
+        <h2>My Shopping</h2>
+
+        {% if orders %}
+            <div>
+                {% for order in orders %}
+                    <div class="order-item">
+                        <p><strong>Order #{{ order.id }}</strong></p>
+                        <p>{{ order.quantity }}x {{ order.merchandise.name }}</p>
+                        <p>Total Price: ${{ order.total_price }}</p>
+                        <p>Date: {{ order.order_date|date:"F j, Y, g:i a" }}</p>
+                        <p>Payment Status: {{ order.payment_status }}</p>
+                        <p>Seller: <a
+                                href="{% url 'public_artist_profile' username=order.seller.username %}">{{ order.seller.username }}</a>
+                        </p>
+                        <p>Buyer: <a
+                                href="{% url 'public_listener_artists' username=order.buyer.username %}">{{ order.buyer.username }}</a>
+                        </p>
+
+                        <hr>
+                        <p><strong>Shipping Information:</strong></p>
+                        <p>Address: {{ order.shipping_address }}</p>
+                        <p>City: {{ order.shipping_city }}</p>
+                        <p>ZIP Code: {{ order.shipping_zip }}</p>
+                        <p>Phone: {{ order.shipping_phone }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% else %}
+                    <span class="disabled">&laquo; first</span>
+                    <span class="disabled">previous</span>
+                {% endif %}
+
+                <span class="current-page">{{ page_obj.number }}</span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% else %}
+                    <span class="disabled">next</span>
+                    <span class="disabled">last &raquo;</span>
+                {% endif %}
+            </div>
+        {% else %}
+            <p style="text-align: center;">You haven't made any purchases yet.</p>
+        {% endif %}
+    </div>
+{% endblock %}

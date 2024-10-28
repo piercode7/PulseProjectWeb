@@ -1,0 +1,56 @@
+{% extends 'music/base.html' %}
+{% load static %}
+{% block title %}Edit Song - {{ brano.title }}{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn-save:hover {
+            background-color: #218838;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+
+        .form-error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+
+    <header>
+        <a href="javascript:history.back()" class="btn-back">Back</a>
+        <h1>Edit song in "{{ album.title }}"</h1>
+    </header>
+
+    <main>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn-save">Save Changes</button>
+        </form>
+    </main>
+{% endblock %}

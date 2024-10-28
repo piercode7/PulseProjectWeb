@@ -1,0 +1,99 @@
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ artist_profile.user.username }}'s Merchandise
+{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            user-select: none;
+            text-align: center;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+
+        .merch-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .merch-item {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .merch-item img {
+            width: 300px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .btn-add,
+        .btn-edit {
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: inline-block;
+            user-select: none;
+        }
+
+        .btn-add:hover,
+        .btn-edit:hover {
+            background-color: #0056b3;
+        }
+
+        .merch-info {
+            margin-bottom: 10px;
+        }
+    </style>
+
+    <header>
+        <a href="{% url 'private_artist_profile' username=user.username %}" class="btn-back">Back to Profile</a>
+        <h1>{{ artist_profile.user.username }}'s Merchandise</h1>
+    </header>
+
+    <main>
+        <a href="{% url 'create_merch' username=user.username %}" class="btn-add">Add new merchandise</a>
+
+        <div class="merch-container">
+            {% if merch_items %}
+                {% for merch in merch_items %}
+                    <div class="merch-item">
+                        {% if merch.image %}
+                            <img src="{{ merch.image.url }}" alt="Image of {{ merch.name }}">
+                        {% else %}
+                            <p>No image available.</p>
+                        {% endif %}
+                        <div class="merch-info">
+                            <h3>{{ merch.name }}</h3>
+                            <p>Description: {{ merch.description }}</p>
+                            <p>Price: ${{ merch.price }}</p>
+                            <p>Quantity Available: {{ merch.stock_quantity }}</p>
+                        </div>
+                        <a href="{% url 'edit_merch' username=user.username merch_id=merch.id %}" class="btn-edit">Edit
+                            merchandise</a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No merchandise has been added yet.</p>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}

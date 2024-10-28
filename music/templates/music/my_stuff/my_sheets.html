@@ -1,0 +1,40 @@
+{% extends 'music/base.html' %}
+{% load music_extras %}
+
+{% block title %}
+    {{ artist_profile.user.username }}'s Sheet Music
+{% endblock %}
+
+{% block content %}
+    <header>
+        <a href="{% url 'private_artist_profile' username=user.username %}" class="btn btn-back">Back to Profile</a>
+        <h1>{{ artist_profile.user.username }}'s Sheet Music</h1>
+    </header>
+
+    <main>
+        <a href="{% url 'register_sheet_music' username=user.username %}">Add new sheet music</a>
+
+        <h2>Sheet Music List</h2>
+        {% if sheets %}
+            <ul>
+                {% for sheet in sheets %}
+                    <li>
+                        <h3>{{ sheet.title }}</h3>
+                        <p>Description: {{ sheet.description }}</p>
+                        <p>Price: ${{ sheet.price }}</p>
+                        <p>Complexity: {{ sheet.get_Complexity_display }}</p>
+                        {% if sheet.file %}
+                            <a href="{{ sheet.file.url }}" target="_blank">View sheet music</a>
+                        {% else %}
+                            <p>No file available.</p>
+                        {% endif %}
+                        <a href="{% url 'edit_sheet_music' username=user.username sheet_id=sheet.id %}">Edit sheet
+                            music</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No sheet music has been added yet.</p>
+        {% endif %}
+    </main>
+{% endblock %}

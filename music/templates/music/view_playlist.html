@@ -1,0 +1,264 @@
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block content %}
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn-danger {
+            display: inline-block;
+            padding: 5px 15px;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .track-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .track-item {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .audio-player {
+            width: 100%;
+        }
+
+        .playlist-description {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <header>
+        <button onclick="history.back()" class="btn btn-back">Back</button>
+
+        <h1>{{ playlist.title }}</h1>
+        {% if playlist.cover_image %}
+            <img src="{{ playlist.cover_image.url }}" alt="Cover of {{ playlist.title }}"
+                 style="width: 200px; height: auto;">
+        {% endif %}
+    </header>
+
+    <main>
+
+        {% if tracks %}
+            <ul style="list-style-type: none; padding: 0;">
+                {% for track in tracks %}
+                    <li class="track-item">
+                        <div class="track-info">
+                        <span>
+                            <strong>{{ track.title }}</strong> - 
+                            {{ track.album.title }} - 
+                            <a href="{% url 'public_artist_profile' username=track.artist.user.username %}">
+                                {{ track.artist.name }}
+                            </a>
+                        </span>
+                            {% if is_owner %}
+                                <form action="{% url 'delete_track_from_playlist' username=playlist.listener.user.username playlist_id=playlist.id track_id=track.id %}"
+                                      method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            onclick="return confirm('Sei sicuro di voler rimuovere questa traccia dalla playlist?');"
+                                            class="btn btn-danger">Delete
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if track.mp3_file %}
+                                <audio controls class="audio-player" preload="None"
+                                       data-track-id="{{ track.id }}"
+                                       data-track-genre="{{ track.genre }}"
+                                       data-track-artist="{{ track.artist.name }}">
+                                    <source src="{{ track.mp3_file.url }}" type="audio/mpeg">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            {% else %}
+                                <p>No audio available.</p>
+                            {% endif %}
+
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No tracks available in this playlist.</p>
+        {% endif %}
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentAudio = null;  // Variabile per tracciare l'audio attualmente in riproduzione
+            let playStartTime = 0;  // Variabile per tracciare il tempo di inizio della riproduzione
+            let hasPlayedLongEnough = false; // Variabile per tracciare se il brano è stato riprodotto abbastanza a lungo
+
+            function switchTab(tabName) {
+                const sections = document.querySelectorAll('.content-section');
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                const activeTab = document.getElementById(tabName);
+                if (activeTab) {
+                    activeTab.style.display = 'block';
+                }
+            }
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    switchTab(button.getAttribute('data-tab'));
+                });
+            });
+
+            // Default to show albums
+            switchTab('albums-section');
+
+            function updateGenreScores(trackGenre) {
+                fetch("{% url 'update_interactions' username=request.user.username %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        trackGenre: trackGenre
+                    })
+                })
+
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            console.log(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating genre scores:', error);
+                    });
+            }
+
+
+            function incrementPlayCount(trackId) {
+                console.log("Incremendo il count per trackId: ", trackId);  // Debug per verificare trackId
+                fetch("{% url 'increment_play_count' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        trackId: trackId  // Invia l'ID del brano per il quale incrementare il conteggio
+                    })
+                })
+                    .then(response => response.json())  // Attendi la risposta in formato JSON
+                    .then(data => {
+                        if (data.message) {
+                            console.log("Risposta dalla vista increment_play_count:", data.message);  // Debug della risposta
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore incrementando il play count:', error);  // Mostra eventuali errori nella console
+                    });
+            }
+
+
+            const audioPlayers = document.querySelectorAll('.audio-player');
+            audioPlayers.forEach(player => {
+                let startedFromBeginning = false;
+                let playStartTime = 0;
+                let hasPlayedLongEnough = false;
+
+                player.addEventListener('play', function () {
+                    if (this.currentTime === 0) {
+                        startedFromBeginning = true;
+                        playStartTime = Date.now();
+                        hasPlayedLongEnough = false;
+                    }
+                });
+
+                player.addEventListener('timeupdate', function () {
+                    if (startedFromBeginning && !hasPlayedLongEnough) {
+                        const elapsedTime = (Date.now() - playStartTime) / 1000;
+                        if (elapsedTime >= 30) {
+                            const trackGenre = this.getAttribute('data-track-genre');
+                            const trackId = this.getAttribute('data-track-id')
+                            updateGenreScores(trackGenre);
+                            incrementPlayCount(trackId)
+                            hasPlayedLongEnough = true;
+                        }
+                    }
+                });
+
+                player.addEventListener('pause', function () {
+                    startedFromBeginning = false;
+                    playStartTime = 0;
+                });
+
+                player.addEventListener('seeked', function () {
+                    startedFromBeginning = false;
+                    playStartTime = 0;
+                });
+            });
+
+            // Funzione per il download
+            function startDownload(button) {
+                const player = button.previousElementSibling;
+                const source = player.querySelector('source');
+                if (!source.src) {
+                    source.src = source.dataset.src;
+                    player.load(); // Carica il file audio dopo aver impostato il src
+                    button.disabled = true; // Disabilita il pulsante di download dopo l'avvio
+                }
+            }
+
+            // Listener per i pulsanti di download
+            const downloadButtons = document.querySelectorAll('.btn-download');
+            downloadButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    startDownload(this);
+                });
+            });
+
+            // Funzione per mettere in pausa qualsiasi altro audio in riproduzione
+            function pauseOtherAudios(current) {
+                document.querySelectorAll('.audio-player').forEach(audio => {
+                    if (audio !== current && !audio.paused) {
+                        audio.pause();
+                    }
+                });
+            }
+
+            // Event listener per l'evento play per gestire la messa in pausa degli altri brani
+            document.querySelectorAll('.audio-player').forEach(player => {
+                player.addEventListener('play', function () {
+                    pauseOtherAudios(this);
+                });
+            });
+        });
+    </script>
+
+
+{% endblock %}

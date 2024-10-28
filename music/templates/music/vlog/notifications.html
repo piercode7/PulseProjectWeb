@@ -1,0 +1,107 @@
+{% extends 'music/base.html' %}
+
+{% block title %}
+    Notification Center
+{% endblock %}
+
+{% block content %}
+    <style>
+        .notification-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn-delete-all {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            float: right;
+        }
+
+        .notification-item {
+            background-color: #f8f9fa;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-message {
+            flex-grow: 1;
+        }
+
+        .mark-as-read {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .mark-as-read:hover {
+            background-color: #0056b3;
+        }
+
+        .read-status {
+            background-color: #28a745;
+            color: white;
+            border-radius: 3px;
+            padding: 5px 10px;
+            text-align: center;
+        }
+
+        .read-status.readed {
+            background-color: #6c757d;
+        }
+    </style>
+
+    <h1>Notification Center</h1>
+    <button onclick="history.back()" class="btn-back">Back</button>
+    <a href="{% url 'delete_all_notifications' %}" class="btn-delete-all"
+       onclick="return confirm('Are you sure you want to delete all notifications?')">Delete All</a>
+
+    <ul class="notification-list">
+        {% for notification in notifications %}
+            <li class="notification-item">
+            <span class="notification-message">
+                {{ notification.message|safe }}
+            </span>
+                {% if not notification.is_read %}
+                    <form method="post" action="{% url 'mark_notification_as_read' notification.id %}"
+                          style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="mark-as-read">New</button>
+                    </form>
+                {% else %}
+                    <span class="read-status readed">Readed</span>
+                {% endif %}
+            </li>
+        {% empty %}
+            <p>No notifications yet.</p>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

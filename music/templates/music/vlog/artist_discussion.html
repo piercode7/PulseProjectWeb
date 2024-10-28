@@ -1,0 +1,251 @@
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block title %}
+    Discussion about {{ artist.user.username }}
+{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            user-select: none;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+
+        .comment-form {
+            margin-bottom: 30px;
+        }
+
+        .comment {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .comment-author {
+            font-weight: bold;
+            margin-left: 10px;
+            text-decoration: none;
+        }
+
+        .comment-author a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .comment-author a:hover {
+            text-decoration: underline;
+        }
+
+        .comment-date {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .profile-image-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #ccc;
+        }
+
+        .no-profile-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #555;
+            display: inline-block;
+            border: 1px solid #ccc;
+        }
+
+        .reply {
+            margin-left: 50px;
+        }
+
+        .reply-form {
+            margin-top: 10px;
+            margin-left: 50px;
+        }
+
+        .btn-reply {
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 10px;
+            user-select: none;
+            text-decoration: none;
+        }
+
+        .btn-reply:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-delete {
+            color: #fff;
+            background-color: #dc3545;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 10px;
+            user-select: none;
+            text-decoration: none;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+            text-decoration: none;
+        }
+
+        .comment-actions {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+
+    <a href="{% url 'public_artist_profile' artist.user.username %}" class="btn-back">Back</a>
+
+    <h1>Discussion about {{ artist.user.username }}</h1>
+
+    <!-- Form per selezionare l'ordinamento e il filtro per album -->
+    <form method="get" action="" style="margin-bottom: 20px;">
+        <label for="sort_by">Sort by:</label>
+        <select name="sort_by" id="sort_by" onchange="this.form.submit()">
+            <option value="recent" {% if request.GET.sort_by == 'recent' %}selected{% endif %}>Recent</option>
+            <option value="filotto" {% if request.GET.sort_by == 'filotto' %}selected{% endif %}>Longest thread</option>
+        </select>
+
+        <!-- Menu a tendina per selezionare l'album -->
+        <label for="album_id">Filter by Album:</label>
+        <select name="album_id" id="album_id" onchange="this.form.submit()">
+            <option value="">All Albums</option>
+            {% for album in albums %}
+                <option value="{{ album.id }}" {% if selected_album == album.id|stringformat:"s" %}selected{% endif %}>{{ album.title }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if request.user.is_authenticated and request.user.listenerprofile %}
+        <div class="comment-form">
+            <h2>Add a Comment</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary" style="user-select: none;">Submit</button>
+            </form>
+        </div>
+    {% else %}
+        <p>You must be logged in as a listener to add comments.</p>
+    {% endif %}
+
+    <div class="comments-section">
+        <h2>Comments</h2>
+        {% if comments %}
+            {% for comment in comments %}
+                <div class="comment">
+                    <div>
+                        {% if comment.listener.photo_image %}
+                            <img src="{{ comment.listener.photo_image.url }}" alt="{{ comment.listener.user.username }}"
+                                 class="profile-image-small">
+                        {% else %}
+                            <div class="no-profile-image"></div>
+                        {% endif %}
+                    </div>
+                    <div style="flex: 1; margin-left: 10px;">
+                        <p class="comment-author">
+                            <a href="{% url 'public_listener_artists' username=comment.listener.user.username %}">{{ comment.listener.user.username }}</a>
+                            {% if comment.album %}
+                                commented on <strong>{{ comment.album.title }}</strong>
+                            {% else %}
+                                commented on <strong>{{ artist.user.username }}</strong>
+                            {% endif %}
+                        </p>
+                        <p class="comment-date">{{ comment.created_at|date:"F j, Y, g:i a" }}</p>
+                        <p>{{ comment.content }}</p>
+
+                        <div class="comment-actions">
+                            {% if request.user.is_authenticated and request.user.listenerprofile == comment.listener %}
+                                <a href="{% url 'delete_comment' comment.id %}" class="btn-delete">Delete</a>
+                            {% endif %}
+
+                            {% if request.user.is_authenticated and request.user.listenerprofile %}
+                                <button class="btn-reply"
+                                        onclick="document.getElementById('reply-form-{{ comment.id }}').style.display='block'">
+                                    Reply
+                                </button>
+                            {% endif %}
+                        </div>
+
+                        {% if request.user.is_authenticated and request.user.listenerprofile %}
+                            <div id="reply-form-{{ comment.id }}" class="reply-form" style="display:none;">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <textarea name="content" rows="2" class="form-control"
+                                              placeholder="Write your reply..."></textarea>
+                                    <input type="hidden" name="parent" value="{{ comment.id }}">
+                                    <button type="submit" class="btn btn-primary" style="user-select: none;">Submit
+                                    </button>
+                                </form>
+                            </div>
+                        {% endif %}
+
+                        {% if comment.replies %}
+                            <div class="replies">
+                                {% for reply in comment.replies.all %}
+                                    <div class="comment reply">
+                                        <div>
+  {% if reply.listener.photo_image %}
+    <img src="{{ reply.listener.photo_image.url }}" 
+         alt="{{ reply.listener.user.username }}" 
+         class="profile-image-small"
+         onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+{% else %}
+    <div class="no-profile-image"></div>
+{% endif %}
+
+                                        </div>
+                                        <div style="flex: 1; margin-left: 10px;">
+                                            <p class="comment-author">
+                                                <a href="{% url 'public_listener_artists' username=reply.listener.user.username %}">{{ reply.listener.user.username }}</a>
+                                            </p>
+                                            <p class="comment-date">{{ reply.created_at|date:"F j, Y, g:i a" }}</p>
+                                            <p>{{ reply.content }}</p>
+                                            {% if request.user.is_authenticated and request.user.listenerprofile == reply.listener %}
+                                                <a href="{% url 'delete_comment' reply.id %}"
+                                                   class="btn-delete">Delete</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No comments yet.</p>
+        {% endif %}
+    </div>
+{% endblock %}

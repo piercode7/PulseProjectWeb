@@ -1,0 +1,13 @@
+# Ignora il file con informazioni sensibili
+informazioni.txt
+
+
+# Aggiungi altre directory o file temporanei che non vuoi tracciati
+*.log
+*.env
+__pycache__/
+*.pyc
+*.pyo
+
+informazioni.txt
+

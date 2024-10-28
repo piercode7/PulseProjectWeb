@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to PULSE</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            position: relative; /* Positioning relative for absolute children */
+        }
+
+        header {
+            background-color: #007bff;
+            width: 100%;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            margin: 0;
+            color: white;
+            font-size: 36px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .button-container a {
+            background-color: rgba(1, 1, 1, 0.49);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 4px;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        .button-container a:hover {
+            background-color: #0056b3;
+        }
+
+        .content {
+            max-width: 800px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .explore-link {
+            position: absolute; /* Absolute positioning for bottom-right placement */
+            bottom: 20px;
+            right: 20px;
+            font-size: 16px;
+            color: #007bff;
+        }
+
+        .explore-link a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .explore-link a:hover {
+            color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+<header>
+    <h1>Welcome to PULSE</h1>
+</header>
+<div class="content">
+    <div class="button-container">
+        <a href="{% url 'login' %}">Login</a>
+        <a href="{% url 'register_account' %}">Sign Up</a>
+    </div>
+</div>
+<div class="explore-link">
+    <a href="{% url 'genre_list' %}">
+        New entry? Let's take a look
+    </a>
+</div>
+</body>
+</html>

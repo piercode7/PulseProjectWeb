@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Seguaci</title>
+    <!-- Aggiungi eventuali CSS o JS necessari -->
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+    </style>
+
+</head>
+<body>
+<a href="javascript:history.back()" class="btn-back">Torna Indietro</a>
+<h1>Seguaci</h1>
+<ul>
+    {% for follow in user_followers %}
+        <li>
+            <a href="{% url 'public_listener_artists' follow.follower.user.username %}">{{ follow.follower.user.username }}</a>
+        </li>
+
+    {% endfor %}
+</ul>
+</body>
+</html>

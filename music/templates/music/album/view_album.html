@@ -1,0 +1,228 @@
+{% extends 'music/base.html' %}
+{% block title %}{{ album.title }} by {{ artist.name }}{% endblock %}
+
+{% block content %}
+    <style>
+        .album-details {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center; /* Center align the content */
+        }
+
+        .cover-image {
+            width: 40%;
+            height: auto;
+            display: block;
+            margin: 0 auto 15px; /* Center image and add bottom margin */
+            border: 2px solid black;
+        }
+
+        .audio-player {
+            width: 100%;
+            display: block;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .track-list {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .track-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .track-title {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            padding: 5px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+    </style>
+    <button onclick="history.back()" class="btn-back">Back</button>
+
+
+    <div class="album-details">
+        <h1>{{ album.title }}</h1>
+        <p><strong>Artist:</strong> <a href="{% url 'public_artist_profile' artist.user.username %}">{{ artist.name }}</a></p>
+        <p><strong>Genre:</strong> {{ album.genre.name }}</p>
+        <p><strong>Release Date:</strong> {{ album.release_date }}</p>
+
+        {% if album.cover_image %}
+            <img src="{{ album.cover_image.url }}" alt="{{ album.title }} cover" class="cover-image">
+        {% else %}
+            <p>No cover image available.</p>
+        {% endif %}
+    </div>
+
+    <div class="track-list-section">
+        <h2>Tracks</h2>
+        <ul class="track-list">
+            {% if album.brani.all %}
+                {% for brano in album.brani.all %}
+                    <li>
+                        <div class="track-title">
+                            <span>{{ brano.track_index }} - {{ brano.title }}</span>
+                        </div>
+                    </li>
+                    <li>
+                        {% if brano.mp3_file %}
+                            <audio controls class="audio-player" preload="None"
+                                   data-track-id="{{ brano.id }}" 
+                                   data-track-genre="{{ brano.genre }}" 
+                                   data-track-artist="{{ brano.artist.name }}">
+                                <source src="{{ brano.mp3_file.url }}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        {% else %}
+                            <p>No audio available.</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            {% else %}
+                <p>No songs in this album</p>
+            {% endif %}
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentAudio = null;  // Variabile per tracciare l'audio attualmente in riproduzione
+            let playStartTime = 0;  // Variabile per tracciare il tempo di inizio della riproduzione
+            let hasPlayedLongEnough = false; // Variabile per tracciare se il brano è stato riprodotto abbastanza a lungo
+
+            function updateGenreScores(trackGenre) {
+                fetch("{% url 'update_interactions' username=request.user.username %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        trackGenre: trackGenre
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            console.log(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating genre scores:', error);
+                    });
+            }
+
+            function incrementPlayCount(trackId) {
+                console.log("Incrementing play count for trackId: ", trackId);
+                fetch("{% url 'increment_play_count' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        trackId: trackId
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            console.log("Response from increment_play_count:", data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error incrementing play count:', error);
+                    });
+            }
+
+            const audioPlayers = document.querySelectorAll('.audio-player');
+            audioPlayers.forEach(player => {
+                let startedFromBeginning = false;
+                let playStartTime = 0;
+                let hasPlayedLongEnough = false;
+
+                player.addEventListener('play', function () {
+                    if (this.currentTime === 0) {
+                        startedFromBeginning = true;
+                        playStartTime = Date.now();
+                        hasPlayedLongEnough = false;
+                    }
+                });
+
+                player.addEventListener('timeupdate', function () {
+                    if (startedFromBeginning && !hasPlayedLongEnough) {
+                        const elapsedTime = (Date.now() - playStartTime) / 1000;
+                        if (elapsedTime >= 30) {
+                            const trackGenre = this.getAttribute('data-track-genre');
+                            const trackId = this.getAttribute('data-track-id');
+                            updateGenreScores(trackGenre);
+                            incrementPlayCount(trackId);
+                            hasPlayedLongEnough = true;
+                        }
+                    }
+                });
+
+                player.addEventListener('pause', function () {
+                    startedFromBeginning = false;
+                    playStartTime = 0;
+                });
+
+                player.addEventListener('seeked', function () {
+                    startedFromBeginning = false;
+                    playStartTime = 0;
+                });
+            });
+
+            function pauseOtherAudios(current) {
+                document.querySelectorAll('.audio-player').forEach(audio => {
+                    if (audio !== current && !audio.paused) {
+                        audio.pause();
+                    }
+                });
+            }
+
+            document.querySelectorAll('.audio-player').forEach(player => {
+                player.addEventListener('play', function () {
+                    pauseOtherAudios(this);
+                });
+            });
+        });
+    </script>
+
+{% endblock %}

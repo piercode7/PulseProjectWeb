@@ -1,0 +1,172 @@
+{% extends 'music/base.html' %}
+{% load static %}
+{% block title %}Explore Music{% endblock %}
+
+{% block content %}
+    <style>
+        .explore-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .content-section {
+            width: 100%;
+            max-width: 600px; /* Increased max-width for a larger appearance */
+            margin-bottom: 30px;
+        }
+
+        .content-section h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .content-list {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column; /* Ensure the items stay in a single column */
+            align-items: center;
+        }
+
+        .content-item {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0; /* Add margin top and bottom for spacing */
+            width: 100%; /* Full width for single column */
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .content-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .content-item img {
+            width: 100%;
+            height: auto; /* Adjust height to maintain aspect ratio */
+            max-height: 300px; /* Restrict max-height for a more controlled view */
+            object-fit: cover; /* Ensures the image fills the container */
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .content-item a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .content-item a:hover {
+            color: #0056b3;
+        }
+
+        .btn-buy {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-buy:hover {
+            background-color: #218838;
+        }
+
+        .audio-player {
+            width: 100%;
+            display: block;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .genre-label {
+            display: block;
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+    </style>
+
+    <div class="explore-container">
+
+        <!-- Section for Recommended Tracks -->
+        <div class="content-section">
+            <h2>Recommended Tracks</h2>
+            {% if combined_content %}
+                <ul class="content-list">
+                    {% for content in combined_content %}
+                        {% if content.artist and content.album %}
+                            <li class="content-item">
+{% if content.album.cover_image and content.album.cover_image.url %}
+    <img src="{{ content.album.cover_image.url }}" alt="{{ content.title }}"
+         onerror="this.onerror=null; this.src='{% static 'images/nocover.jpg' %}';">
+{% else %}
+    <img src="{% static 'images/nocover.jpg' %}" alt="No cover available">
+{% endif %}
+
+                                <h3>{{ content.title }}</h3>
+                                <p>by <a
+                                        href="{% url 'public_artist_profile' content.artist.user.username %}">{{ content.artist.name }}</a>
+                                </p>
+                                <p><em>{{ content.album.title }}</em></p>
+                                <span class="genre-label">{{ content.genre.name }}</span>
+                                {% if content.mp3_file %}
+                                    <audio controls class="audio-player" preload="none"
+                                           data-track-title="{{ content.title }}"
+                                           data-track-genre="{{ content.genre.name }}"
+                                           data-track-artist="{{ content.artist.name }}">
+                                        <source src="{{ content.mp3_file.url }}" type="audio/mpeg">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                {% else %}
+                                    <p>No audio available.</p>
+                                {% endif %}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No tracks available at the moment. Please check back later!</p>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <p>Copyright © 2024 My Music Site</p>
+    </footer>
+{% endblock %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let currentAudio = null;  // Variable to track the currently playing audio
+
+        // Function to pause any other playing audio
+        function pauseOtherAudios(current) {
+            document.querySelectorAll('.audio-player').forEach(audio => {
+                if (audio !== current && !audio.paused) {
+                    audio.pause();
+                }
+            });
+        }
+
+        // Event listener for play event to handle pausing of other tracks
+        document.querySelectorAll('.audio-player').forEach(player => {
+            player.addEventListener('play', function () {
+                pauseOtherAudios(this);
+            });
+        });
+    });
+</script>

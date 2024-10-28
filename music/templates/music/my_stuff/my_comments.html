@@ -1,0 +1,182 @@
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block title %}
+    My Comments
+{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            user-select: none;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+
+        .comment {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .comment-author {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .comment-date {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .profile-image-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #ccc;
+        }
+
+        .no-profile-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #555;
+            display: inline-block;
+            border: 1px solid #ccc;
+        }
+
+        .btn-delete {
+            color: #fff;
+            background-color: #dc3545;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 10px;
+            user-select: none;
+            text-decoration: none;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+            text-decoration: none;
+        }
+
+        .comment-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .pagination .current-page {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            pointer-events: none;
+            border: 1px solid #ddd;
+        }
+    </style>
+
+    <a href="{% url 'private_listener_profile' username=request.user.username %}" class="btn-back">Back to Profile</a>
+
+    <h1>My Comments</h1>
+
+    <div class="comments-section">
+        {% if comments %}
+            {% for comment in comments %}
+                <div class="comment">
+                    <div>
+                        {% if comment.listener.photo_image %}
+                            <img src="{{ comment.listener.photo_image.url }}" alt="{{ comment.listener.user.username }}"
+                                 class="profile-image-small">
+                        {% else %}
+                            <div class="no-profile-image"></div>
+                        {% endif %}
+                    </div>
+                    <div style="flex: 1; margin-left: 10px;">
+                        <p class="comment-author">{{ comment.listener.user.username }}
+                            {% if comment.album %}
+                                commented on <strong>{{ comment.album.title }}</strong> by
+                                <a href="{% url 'public_artist_profile' comment.album.artist.user.username %}">{{ comment.album.artist.name }}</a>
+                            {% else %}
+                                commented on
+                                <a href="{% url 'public_artist_profile' comment.artist.user.username %}"><strong>{{ comment.artist.name }}</strong></a>
+                            {% endif %}
+                        </p>
+                        <p class="comment-date">{{ comment.created_at|date:"F j, Y, g:i a" }}</p>
+                        <p>{{ comment.content }}</p>
+
+                        <div class="comment-actions">
+                            <a href="{% url 'delete_comment' comment.id %}" class="btn-delete">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Paginazione -->
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% else %}
+                    <span class="disabled">&laquo; first</span>
+                    <span class="disabled">previous</span>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="current-page">{{ num }}</span>
+                    {% else %}
+                        <a href="?page={{ num }}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% else %}
+                    <span class="disabled">next</span>
+                    <span class="disabled">last &raquo;</span>
+                {% endif %}
+            </div>
+        {% else %}
+            <p>You have not made any comments yet.</p>
+        {% endif %}
+    </div>
+{% endblock %}

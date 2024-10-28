@@ -1,0 +1,73 @@
+{% extends "music/base.html" %}  <!-- Estende il template principale -->
+
+{% block title %}Vlogs by Genre{% endblock %}  <!-- Sovrascrive il titolo della pagina -->
+
+{% block content %}
+    <style>
+        .genre-button {
+            display: inline-block;
+            padding: 20px;
+            margin: 10px;
+            font-size: 20px;
+            text-align: center;
+            color: white;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .genre-button:hover {
+            background-color: #45a049;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 18px;
+            text-align: center;
+            color: white;
+            background-color: rgba(14, 14, 14, 0.49);
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: rgba(0, 0, 0, 0.72);
+        }
+
+        .description-text {
+            font-size: 1.2em;
+            margin: 20px 0;
+            font-weight: bold;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        h1 {
+            font-size: 2.5em; /* Caratteri cubitali per il titolo */
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <h1>Select a Genre</h1>
+
+    <!-- Paragrafo esplicativo per spiegare cosa l'utente può aspettarsi di vedere -->
+    <p class="description-text">
+        Choose a genre to explore the top 20 artists and discover some of their popular albums.
+        {% if not user.is_authenticated %}
+            <br>To access these exclusive contents, please <a href="{% url 'login' %}">log in</a> or
+            <a href="{% url 'register_account' %}">create an account</a>!
+        {% endif %}
+    </p>
+
+    <div>
+        {% for genre in genres %}
+            <a href="{% url 'genre_area' genre.id %}" class="genre-button">{{ genre.name }}</a>
+        {% endfor %}
+    </div>
+
+    <a href="#" onclick="history.back();" class="back-button">Back</a>
+{% endblock %}

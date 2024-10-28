@@ -1,0 +1,85 @@
+{% extends 'music/base.html' %}
+{% load static %}
+{% load music_extras %}
+
+{% block title %}Profilo Artista - {{ user.username }}{% endblock %}
+
+{% block content %}
+    <style>
+        .profile-image {
+            width: 150px !important;
+            height: 150px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            display: block !important;
+            border: 2px solid black !important;
+            margin-bottom: 20px;
+        }
+
+        .category-nav a, .save-button {
+            display: block;
+            width: 100%;
+            max-width: 200px;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 1em;
+        }
+
+        .category-nav a {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .category-nav a:hover {
+            background-color: #0056b3;
+        }
+
+        .save-button {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .save-button:hover {
+            background-color: #218838;
+        }
+    </style>
+
+    <header>
+        <h1>Edit Profile</h1>
+    </header>
+
+    <main>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="current-profile-image">
+                {% if user.artistprofile.photo_image %}
+                    <img class="profile-image" src="{{ user.artistprofile.photo_image.url }}" alt="{{ user.username }}"
+                         onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+                {% else %}
+                    <img class="profile-image" src="{% static 'images/undefined2.png' %}" alt="Profile image">
+                {% endif %}
+            </div>
+            {{ form.as_p }}
+            <div class="category-nav">
+                <a href="{% url 'my_albums' user.username %}">My Albums</a>
+                <a href="{% url 'my_merch' user.username %}">My Merch</a>
+                <a href="{% url 'followers_list' user.username %}">Followers</a>
+                <a href="{% url 'my_account' user.username %}">My Account</a> <!-- Nuovo pulsante aggiunto -->
+                <a href="{% url 'artist_orders' user.username %}">My Sales</a> <!-- Nuovo pulsante aggiunto -->
+
+                <button type="submit" class="save-button">Save Changes</button>
+            </div>
+        </form>
+    </main>
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <p>Copyright © 2024 My Music Site</p>
+    </footer>
+{% endblock %}

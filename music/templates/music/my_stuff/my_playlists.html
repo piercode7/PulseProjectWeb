@@ -1,0 +1,61 @@
+{% extends 'music/base.html' %}
+{% load music_extras %}
+
+{% block title %}
+    {{ listener_profile.user.username }}'s Playlists
+{% endblock %}
+
+{% block content %}
+    <header>
+        <a href="{% url 'private_listener_profile' username=listener_profile.user.username %}" class="btn btn-back"
+           style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-bottom: 20px;">Back
+            to Profile</a>
+        <h1>{{ listener_profile.user.username }}'s Playlists</h1>
+        <p>{{ listener_profile.bio }}</p>
+    </header>
+
+    <main>
+        <h2>Playlist List</h2>
+        {% if playlists %}
+            <ul>
+                {% for playlist in playlists %}
+                    <li>
+                        <a href="{% url 'view_playlist' username=listener_profile.user.username playlist_id=playlist.id %}">
+                            <h3>{{ playlist.title }}</h3>
+                        </a>
+                        <p>Release Date: {{ playlist.release_date }}</p>
+                        {% if playlist.cover_image %}
+                            <img src="{{ playlist.cover_image.url }}" alt="Cover of {{ playlist.title }}"
+                                 style="width: 100px; height: auto;">
+                        {% else %}
+                            <p>No cover image available.</p>
+                        {% endif %}
+                        <form method="post"
+                              action="{% url 'delete_playlist' username=listener_profile.user.username playlist_id=playlist.id %}"
+                              style="display: inline;" onsubmit="return confirmDelete();">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger"
+                                    style="background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px; border: none; cursor: pointer;">
+                                Delete
+                            </button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No playlists have been added yet.</p>
+        {% endif %}
+
+        <div style="margin-top: 20px;">
+            <a href="{% url 'register_playlist' username=listener_profile.user.username %}" class="btn btn-primary"
+               style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px;">+
+                Create New Playlist</a>
+        </div>
+    </main>
+
+    <script>
+        function confirmDelete() {
+            return confirm("Are you sure you want to delete this playlist? This action cannot be undone.");
+        }
+    </script>
+{% endblock %}

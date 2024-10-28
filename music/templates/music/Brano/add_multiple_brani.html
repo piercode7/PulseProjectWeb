@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add multiple songs - {{ album.title }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+
+        .error-message {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .success-message {
+            color: green;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .song-form {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+
+        .song-form input, .song-form select {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .song-form label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <a href="javascript:history.back()" class="btn-back">Back</a>
+    <h1>Add multiple songs to {{ album.title }}</h1>
+</header>
+<main>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" id="mp3_files" name="mp3_files" multiple><br><br>
+        <button type="button" id="load_tags">Load Tags</button>
+
+        <div id="form-container">
+            <!-- Form for each selected song will be appended here -->
+        </div>
+
+        <div>
+            <input type="checkbox" id="select_all_mp3" name="select_all_mp3">
+            <label for="select_all_mp3">Select all MP3 files for upload</label>
+        </div>
+
+        <button type="submit" id="save_button" style="display:none;">Save</button>
+
+        <div id="message-container"></div>
+    </form>
+
+    <script>
+        document.getElementById('load_tags').addEventListener('click', function () {
+            const files = document.getElementById('mp3_files').files;
+            const formContainer = document.getElementById('form-container');
+            const messageContainer = document.getElementById('message-container');
+            formContainer.innerHTML = ''; // Reset the form container
+            messageContainer.innerHTML = ''; // Reset any previous messages
+
+            if (files.length === 0) {
+                messageContainer.innerHTML = '<p class="error-message">Please select files to load tags.</p>';
+                return;
+            }
+
+            Array.from(files).forEach((file, index) => {
+                if (file.type !== 'audio/mpeg') {
+                    messageContainer.innerHTML += `<p class="error-message">Error: ${file.name} is not an MP3 file and cannot be loaded.</p>`;
+                    return;
+                }
+
+                // Read MP3 tags and duration
+                jsmediatags.read(file, {
+                    onSuccess: function (tag) {
+                        const tags = tag.tags;
+
+                        // Create the HTML for each song form
+                        const formHtml = `
+                                <div class="song-form" data-index="${index}">
+                                    <p>
+                                        <label for="title_${index}">Title:</label><br>
+                                        <input type="text" name="title_${index}" value="${tags.title || ''}" required>
+                                    </p>
+                                    <p>
+                                        <label for="track_index_${index}">Track Index:</label><br>
+                                        <input type="text" name="track_index_${index}" value="${tags.track ? tags.track.split('/')[0] : ''}" required>
+                                    </p>
+                                    <p>
+                                        <label for="side_${index}">Disc Number (Side):</label><br>
+                                        <input type="text" name="side_${index}" value="${tags.part_of_a_set || '1'}" required>
+                                    </p>
+                                    <p>
+                                        <label for="duration_${index}">Duration (in seconds):</label><br>
+                                        <input type="text" name="duration_${index}" value="" required>
+                                    </p>
+                                    <p>
+                                        <input type="checkbox" id="upload_mp3_${index}" class="upload_mp3" name="upload_mp3_${index}" value="true">
+                                        <label for="upload_mp3_${index}">Upload mp3 file</label>
+                                    </p>
+                                </div>
+                            `;
+                        formContainer.insertAdjacentHTML('beforeend', formHtml);
+
+                        // Extract duration using the Web Audio API
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const reader = new FileReader();
+
+                        reader.onload = function (event) {
+                            audioContext.decodeAudioData(event.target.result, function (buffer) {
+                                const duration = buffer.duration;
+                                document.querySelector(`input[name="duration_${index}"]`).value = duration.toFixed(2);
+                                toggleSaveButton(); // Check if the Save button should be enabled
+                            });
+                        };
+
+                        reader.readAsArrayBuffer(file);
+                    },
+                    onError: function (error) {
+                        messageContainer.innerHTML += `<p class="error-message">Error reading tags from ${file.name}: ${error.type}</p>`;
+                    }
+                });
+            });
+        });
+
+        document.getElementById('select_all_mp3').addEventListener('change', function () {
+            const checkboxes = document.querySelectorAll('.upload_mp3');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+
+        function toggleSaveButton() {
+            const formContainer = document.getElementById('form-container');
+            const saveButton = document.getElementById('save_button');
+            const allForms = formContainer.querySelectorAll('.song-form');
+            let allFilled = true;
+
+            allForms.forEach(form => {
+                const inputs = form.querySelectorAll('input[required], select[required]');
+                inputs.forEach(input => {
+                    if (!input.value) {
+                        allFilled = false;
+                    }
+                });
+            });
+
+            if (allFilled && allForms.length > 0) {
+                saveButton.style.display = 'block';
+            } else {
+                saveButton.style.display = 'none';
+            }
+        }
+
+        document.getElementById('form-container').addEventListener('input', toggleSaveButton);
+    </script>
+</main>
+</body>
+</html>

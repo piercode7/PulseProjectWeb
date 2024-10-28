@@ -1,0 +1,159 @@
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block title %}Song Search Results{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back, .btn-sort {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .btn-back:hover, .btn-sort:hover {
+            background-color: #5a6268;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .pagination .current-page {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            pointer-events: none;
+            border: 1px solid #ddd;
+        }
+
+        .song-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .song-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 1px solid #ddd;
+            border-color: black; /* Thin black border */
+        }
+
+        .song-item a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 18px;
+            margin-right: 10px; /* Spacing between song title and album/artist */
+        }
+
+        .song-item a:hover {
+            text-decoration: underline;
+        }
+
+        .song-album-separator {
+            margin: 0 5px; /* Adds space around the hyphen */
+        }
+
+        .album-name-link, .artist-name-link {
+            color: black; /* Album and artist name in black */
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .album-name-link:hover, .artist-name-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <header>
+        <a href="{% url 'search_profiles' %}" class="btn btn-back">Back to Search</a>
+
+        <h1>Song Search Results for "{{ search_term }}"</h1>
+
+        <!-- Dropdown for sorting -->
+        <form method="GET" action="">
+            <label for="order_by">Order by:</label>
+            <select name="order_by" id="order_by" onchange="this.form.submit()">
+                <option value="title" {% if order_by == 'title' %}selected{% endif %}>Title</option>
+                <option value="play_count" {% if order_by == 'play_count' %}selected{% endif %}>Play Count</option>
+
+            </select>
+        </form>
+    </header>
+
+    <main>
+        <ul>
+            {% for song in results %}
+                <li class="song-item">
+{% if song.album.cover_image %}
+    <img src="{{ song.album.cover_image.url }}" alt="{{ song.album.title }}'s cover picture"
+         onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+{% else %}
+    <img src="{% static 'images/nocover.jpg' %}" alt="Default cover picture">
+{% endif %}
+
+                    <a href="{% url 'view_album' song.album.artist.user.username song.album.id %}">{{ song.title }}</a>
+                    <span class="song-album-separator"> - </span>
+                    <a href="{% url 'view_album' song.album.artist.user.username song.album.id %}"
+                       class="album-name-link">{{ song.album.title }}</a>
+                    <span class="song-album-separator"> - </span>
+                    <a href="{% url 'public_artist_profile' song.artist.user.username %}"
+                       class="artist-name-link">{{ song.artist.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?order_by={{ order_by }}&page=1">&laquo; first</a>
+                <a href="?order_by={{ order_by }}&page={{ page_obj.previous_page_number }}">previous</a>
+            {% else %}
+                <span class="disabled">&laquo; first</span>
+                <span class="disabled">previous</span>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="current-page">{{ num }}</span>
+                {% else %}
+                    <a href="?order_by={{ order_by }}&page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?order_by={{ order_by }}&page={{ page_obj.next_page_number }}">next</a>
+                <a href="?order_by={{ order_by }}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% else %}
+                <span class="disabled">next</span>
+                <span class="disabled">last &raquo;</span>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}

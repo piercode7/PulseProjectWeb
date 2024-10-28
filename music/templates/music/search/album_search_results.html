@@ -1,0 +1,157 @@
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block title %}Album Search Results{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back, .btn-sort {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .btn-back:hover, .btn-sort:hover {
+            background-color: #5a6268;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .pagination .current-page {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            pointer-events: none;
+            border: 1px solid #ddd;
+        }
+
+        .album-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .album-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 1px solid #ddd;
+            border-color: black; /* Thin black border */
+        }
+
+        .album-item a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 18px;
+            margin-right: 10px; /* Spacing between album title and artist name */
+        }
+
+        .album-item a:hover {
+            text-decoration: underline;
+        }
+
+        .album-artist-separator {
+            margin: 0 5px; /* Adds space around the hyphen */
+        }
+
+        .artist-name-link {
+            color: black; /* Artist name in black */
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .artist-name-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <header>
+        <a href="{% url 'search_profiles' %}" class="btn btn-back">Back to Search</a>
+
+        <h1>Album Search Results for "{{ search_term }}"</h1>
+        <!-- Add sorting buttons -->
+        <div>
+            <a href="?order_by=release_date" class="btn-sort">Sort by Release Date</a>
+            <a href="?order_by=title" class="btn-sort">Sort by Title</a>
+        </div>
+    </header>
+
+    <main>
+        <ul>
+            {% for album in results %}
+                <li class="album-item">
+{% if album.cover_image %}
+    <img src="{{ album.cover_image.url }}" alt="{{ album.title }}'s cover picture"
+         onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+{% else %}
+    <img src="{% static 'images/nocover.jpg' %}" alt="Default cover picture">
+{% endif %}
+
+                    <a href="{% url 'view_album' album.artist.user.username album.id %}">{{ album.title }}</a>
+                    <span class="album-artist-separator"> - </span>
+                    <a href="{% url 'public_artist_profile' album.artist.user.username %}"
+                       class="artist-name-link">{{ album.artist.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?order_by={{ order_by }}&page=1">&laquo; first</a>
+                <a href="?order_by={{ order_by }}&page={{ page_obj.previous_page_number }}">previous</a>
+            {% else %}
+                <span class="disabled">&laquo; first</span>
+                <span class="disabled">previous</span>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="current-page">{{ num }}</span>
+                {% else %}
+                    <a href="?order_by={{ order_by }}&page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?order_by={{ order_by }}&page={{ page_obj.next_page_number }}">next</a>
+                <a href="?order_by={{ order_by }}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% else %}
+                <span class="disabled">next</span>
+                <span class="disabled">last &raquo;</span>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <p>Copyright © 2024 My Music Site</p>
+    </footer>
+{% endblock %}

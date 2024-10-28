@@ -1,0 +1,40 @@
+{% extends 'music/base.html' %}
+{% load static %}
+{% load music_extras %}
+
+{% block title %}
+    Choose a Playlist
+{% endblock %}
+
+{% block content %}
+    <header>
+        <h1>Select a Playlist for "{{ track.title }}"</h1>
+    </header>
+
+    <main>
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'public_artist_profile' username=track.artist.user.username %}" class="btn btn-back"
+               style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-right: 10px;">Back</a>
+            <a href="{% url 'register_playlist' username=request.user.username %}?next={% url 'choose_playlist' username=request.user.username track_id=track.id %}"
+               class="btn btn-primary"
+               style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px;">+
+                Create New Playlist</a>
+        </div>
+
+        {% if playlists %}
+            <ul>
+                {% for playlist in playlists %}
+                    <li>
+                        <a href="{% url 'add_to_playlist' username=request.user.username playlist_id=playlist.id track_id=track.id %}">
+                            {{ playlist.title }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No playlists available. <a
+                    href="{% url 'register_playlist' username=request.user.username %}?next={% url 'choose_playlist' username=request.user.username track_id=track.id %}">Create
+                a new playlist</a></p>
+        {% endif %}
+    </main>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'music/base.html' %}
+
+{% block content %}
+    <h2>Cerca Artisti</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-search">Cerca</button>
+    </form>
+{% endblock %}
+
+<style>
+    .btn-search {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #6c757d;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .btn-search:hover {
+        background-color: #5a6268;
+    }
+</style>

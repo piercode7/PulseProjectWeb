@@ -1,0 +1,340 @@
+{% extends 'music/base.html' %}
+{% load static %}
+{% load music_extras %}
+
+{% block title %}
+    {{ artist.name }}'s Profile
+{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn-blue {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .btn-blue:hover {
+            background-color: #0056b3;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            border: 2px solid black;
+        }
+
+        .cover-image {
+            width: 32%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border: 2px solid black;
+        }
+
+        .audio-player {
+            width: 100%;
+            display: block;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .profile-item {
+            margin-bottom: 10px;
+        }
+
+        .profile-item h1,
+        .profile-item p {
+            margin: 5px 0;
+        }
+
+        .track-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .track-title {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            padding: 5px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+    </style>
+
+    <header>
+        <button onclick="history.back()" class="btn-back">Back</button>
+        <h1>{{ artist.name }}</h1>
+{% if artist.photo_image %}
+    <img class="profile-image" src="{{ artist.photo_image.url }}" alt="{{ artist.name }}"
+         onerror="this.onerror=null; this.src='{% static 'images/undefined2.png' %}';">
+{% else %}
+    <img class="profile-image" src="{% static 'images/undefined2.png' %}" alt="Profile image">
+{% endif %}
+
+        <p>{{ artist.bio }}</p>
+        <p><strong>{{ follower_count }} Followers</strong></p> <!-- Nuova linea aggiunta -->
+
+        {% if request.user.is_authenticated and request.user.listenerprofile %}
+            {% if is_following %}
+                <a href="{% url 'unfollow_artist' username=artist.user.username %}">Unfollow</a>
+            {% else %}
+                <a href="{% url 'follow_artist' username=artist.user.username %}">Follow</a>
+            {% endif %}
+        {% endif %}
+        <nav>
+            <ul>
+
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <a href="{% url 'public_artist_merch' artist.user.username %}" class="btn-blue">View Merchandise</a>
+        <!-- Pulsante per il Merchandise -->
+        <a href="{% url 'artist_discussion' artist.user.username %}" class="btn-blue">Go to Artist Discussion</a>
+        <!-- Pulsante per la Discussione -->
+
+        <div id="albums-section" class="content-section">
+            <h2>Albums</h2>
+            {% if albums %}
+                {% for album in albums %}
+                    <div class="album">
+                        <h1>{{ album.title }}</h1>
+                        <h3>{{ album.genre }} - {{ album.release_date }}</h3>
+{% if album.cover_image %}
+    <img class="cover-image" src="{{ album.cover_image.url }}" alt="{{ album.title }} cover"
+         onerror="this.onerror=null; this.src='{% static 'images/nocover.jpg' %}';">
+{% else %}
+    <p>No cover image available.</p>
+{% endif %}
+
+                        <ul class="track-list">
+                            {% if album.brani.all %}
+                                {% for brano in album.brani.all %}
+                                    <li>
+                                        <div class="track-title">
+                                            <span>{{ brano.track_index }} - {{ brano.title }}</span>
+                                        </div>
+                                        {% if request.user.is_authenticated and request.user.listenerprofile %}
+                                            <a href="{% url 'choose_playlist' username=request.user.username track_id=brano.id %}"
+                                               class="btn btn-primary">Add to Playlist</a>
+                                        {% endif %}
+                                    </li>
+                                    <li>
+                                        {% if brano.mp3_file %}
+                                            <audio controls class="audio-player" preload="None"
+                                                   data-track-id="{{ brano.id }}" data-track-genre="{{ brano.genre }}">
+                                                data-track-genre="{{ brano.genre }}"
+                                                data-track-artist="{{ brano.artist }}">
+                                                <source src="{{ brano.mp3_file.url }}" type="audio/mpeg">
+                                                Your browser does not support the audio element.
+                                            </audio>
+                                        {% else %}
+                                            <p>No audio available.</p>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <p>No songs in this album</p>
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No albums have been added yet.</p>
+            {% endif %}
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let currentAudio = null;  // Variabile per tracciare l'audio attualmente in riproduzione
+            let playStartTime = 0;  // Variabile per tracciare il tempo di inizio della riproduzione
+            let hasPlayedLongEnough = false; // Variabile per tracciare se il brano è stato riprodotto abbastanza a lungo
+
+            function switchTab(tabName) {
+                const sections = document.querySelectorAll('.content-section');
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                const activeTab = document.getElementById(tabName);
+                if (activeTab) {
+                    activeTab.style.display = 'block';
+                }
+            }
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    switchTab(button.getAttribute('data-tab'));
+                });
+            });
+
+            // Default to show albums
+            switchTab('albums-section');
+
+            function updateGenreScores(trackGenre) {
+                fetch("{% url 'update_interactions' username=request.user.username %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        trackGenre: trackGenre
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            console.log(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating genre scores:', error);
+                    });
+            }
+
+
+            function incrementPlayCount(trackId) {
+                console.log("Incremendo il count per trackId: ", trackId);  // Debug per verificare trackId
+                fetch("{% url 'increment_play_count' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        trackId: trackId  // Invia l'ID del brano per il quale incrementare il conteggio
+                    })
+                })
+                    .then(response => response.json())  // Attendi la risposta in formato JSON
+                    .then(data => {
+                        if (data.message) {
+                            console.log("Risposta dalla vista increment_play_count:", data.message);  // Debug della risposta
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore incrementando il play count:', error);  // Mostra eventuali errori nella console
+                    });
+            }
+
+
+const audioPlayers = document.querySelectorAll('.audio-player');
+audioPlayers.forEach(player => {
+    let startedFromBeginning = false;
+    let playStartTime = 0;
+    let hasPlayedLongEnough = false;
+
+    player.addEventListener('play', function () {
+        if (this.currentTime === 0) {
+            startedFromBeginning = true;
+            playStartTime = Date.now();
+            hasPlayedLongEnough = false;
+        }
+    });
+
+    player.addEventListener('timeupdate', function () {
+        if (startedFromBeginning && !hasPlayedLongEnough) {
+            const elapsedTime = (Date.now() - playStartTime) / 1000;
+            if (elapsedTime >= 30) {
+                const trackGenre = this.getAttribute('data-track-genre');
+                const trackId = this.getAttribute('data-track-id')
+                updateGenreScores(trackGenre);
+                incrementPlayCount(trackId)
+                hasPlayedLongEnough = true;
+            }
+        }
+    });
+
+    player.addEventListener('pause', function () {
+        startedFromBeginning = false;
+        playStartTime = 0;
+    });
+
+    player.addEventListener('seeked', function () {
+        startedFromBeginning = false;
+        playStartTime = 0;
+    });
+});
+
+            // Funzione per il download
+            function startDownload(button) {
+                const player = button.previousElementSibling;
+                const source = player.querySelector('source');
+                if (!source.src) {
+                    source.src = source.dataset.src;
+                    player.load(); // Carica il file audio dopo aver impostato il src
+                    button.disabled = true; // Disabilita il pulsante di download dopo l'avvio
+                }
+            }
+
+            // Listener per i pulsanti di download
+            const downloadButtons = document.querySelectorAll('.btn-download');
+            downloadButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    startDownload(this);
+                });
+            });
+
+            // Funzione per mettere in pausa qualsiasi altro audio in riproduzione
+            function pauseOtherAudios(current) {
+                document.querySelectorAll('.audio-player').forEach(audio => {
+                    if (audio !== current && !audio.paused) {
+                        audio.pause();
+                    }
+                });
+            }
+
+            // Event listener per l'evento play per gestire la messa in pausa degli altri brani
+            document.querySelectorAll('.audio-player').forEach(player => {
+                player.addEventListener('play', function () {
+                    pauseOtherAudios(this);
+                });
+            });
+        });
+    </script>
+
+{% endblock %}

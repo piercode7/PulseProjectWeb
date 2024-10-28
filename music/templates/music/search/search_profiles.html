@@ -1,0 +1,71 @@
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block title %}
+    Search Profiles
+{% endblock %}
+
+{% block content %}
+    <header>
+        <a href="javascript:history.back()" class="btn-back">Back</a>
+        <h1>Search for Artists, Albums, Songs and Listeners</h1>
+    </header>
+
+    <main>
+        <form method="post" action="{% url 'search_profiles' %}">
+            {% csrf_token %}
+            <div>
+                {{ search_form.as_p }}
+                <button type="submit" name="artist_search" class="btn-search">Search Artists</button>
+                <button type="submit" name="listener_search" class="btn-search">Search Listeners</button>
+                <button type="submit" name="album_search" class="btn-search">Search Albums</button>
+                <!-- New button for album search -->
+                <button type="submit" name="song_search" class="btn-search">Search Songs</button>
+                <!-- New button for album search -->
+
+            </div>
+        </form>
+    </main>
+
+    <style>
+        .btn-search {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-right: 5px;
+        }
+
+        .btn-search:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+    </style>
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <p>Copyright © 2024 My Music Site</p>
+    </footer>
+{% endblock %}

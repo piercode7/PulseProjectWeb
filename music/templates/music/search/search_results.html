@@ -1,0 +1,14 @@
+{% extends 'music/base.html' %}
+
+{% block content %}
+    <h2>Risultati della Ricerca</h2>
+    {% if results %}
+        <ul>
+            {% for artist in results %}
+                <li><a href="{% url 'public_artist_profile' artist.user.username %}">{{ artist.name }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nessun artista trovato.</p>
+    {% endif %}
+{% endblock %}

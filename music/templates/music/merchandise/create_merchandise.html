@@ -1,0 +1,77 @@
+{% extends 'music/base.html' %}
+{% load static %}
+
+{% block title %}
+    Add New Merchandise
+{% endblock %}
+
+{% block content %}
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+            user-select: none;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: inline-block;
+            user-select: none;
+        }
+
+        .btn-save:hover {
+            background-color: #218838;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-container label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-container input,
+        .form-container textarea,
+        .form-container select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+
+    <header>
+        <a href="{% url 'my_merch' username=artist_profile.user.username %}" class="btn-back">Back to Merchandise</a>
+        <h1>Add New Merchandise for {{ artist_profile.user.username }}</h1>
+    </header>
+
+    <main>
+        <div class="form-container">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn-save">Save Merchandise</button>
+            </form>
+        </div>
+    </main>
+{% endblock %}

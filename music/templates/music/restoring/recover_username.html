@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recover Username</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .recover-container {
+            background-color: #ffffff;
+            padding: 30px; /* Maggiorato il padding per un aspetto più ampio */
+            border-radius: 10px; /* Maggiorato il border-radius per angoli più morbidi */
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Incrementata la sfocatura dell'ombra */
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333333;
+            margin-bottom: 20px; /* Aggiunto margine per separare l'intestazione dal form */
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555555;
+            font-weight: bold; /* Aggiunto grassetto per evidenziare le etichette */
+        }
+
+        input[type="email"] {
+            width: 100%;
+            padding: 12px; /* Aumentata la dimensione del padding per maggiore spazio */
+            margin-bottom: 20px;
+            border: 1px solid #cccccc;
+            border-radius: 5px; /* Maggiorato il border-radius per una forma più arrotondata */
+            font-size: 16px; /* Aumentata la dimensione del font per migliorare la leggibilità */
+            box-sizing: border-box; /* Garantisce che il padding non influisca sulla larghezza totale */
+            outline: none; /* Rimosso il contorno per un look più pulito */
+        }
+
+        input[type="email"]:focus {
+            border-color: #007BFF; /* Cambia il colore del bordo quando è attivo */
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3); /* Aggiunta un'ombra per l'effetto di focus */
+        }
+
+        button {
+            width: 100%;
+            padding: 12px; /* Aumentato il padding per un aspetto più sostanzioso */
+            background-color: #007BFF;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 15px; /* Aumentato il margine per separare meglio i pulsanti */
+            transition: background-color 0.3s ease; /* Aggiunta una transizione per il background */
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .back-button {
+            background-color: #6c757d;
+        }
+
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+<div class="recover-container">
+    <h2>Recover Your Username</h2>
+
+        After submitting your email, please check your email for a recovery link.
+    Copy the link from the email and paste it into your browser to reset your username.
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="email">Email address:</label>
+        <input type="email" name="email" placeholder="Enter your email" required>
+        <button type="submit">Send Username Recovery Email</button>
+    </form>
+    <button class="back-button" onclick="history.back()">Back</button>
+</div>
+</body>
+</html>

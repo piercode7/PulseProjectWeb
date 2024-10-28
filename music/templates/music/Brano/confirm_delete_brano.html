@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm Delete Song</title>
+</head>
+<body>
+<h1>Confirm Delete Song</h1>
+<p>Are you sure you want to delete the song "{{ brano.title }}" from the album "{{ album.title }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, delete</button>
+    <a href="{% url 'my_albums' username=request.user.username %}">Cancel</a>
+</form>
+</body>
+</html>

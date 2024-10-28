@@ -1,0 +1,96 @@
+{% extends "music/base.html" %}  <!-- Estende il template principale -->
+
+{% block title %}{{ genre.name }}{% endblock %}  <!-- Sovrascrive il titolo della pagina -->
+
+{% block content %}
+    <style>
+        .artist-button, .album-button {
+            display: inline-block;
+            padding: 15px 25px;
+            margin: 10px;
+            font-size: 18px;
+            text-align: center;
+            color: white;
+            background-color: #007BFF;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .artist-button:hover, .album-button:hover {
+            background-color: #0056b3;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 18px;
+            text-align: center;
+            color: white;
+            background-color: rgba(14, 14, 14, 0.49);
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: rgba(0, 0, 0, 0.72);
+        }
+
+        .title-large {
+            font-size: 2.5em; /* Titolo più grande */
+            font-weight: bold;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .title-medium {
+            font-size: 2em; /* Titolo intermedio */
+            font-weight: bold;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .info-text {
+            font-size: 1.5em;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .search-link {
+            color: #007BFF;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .search-link:hover {
+            color: #0056b3;
+        }
+    </style>
+
+    <a href="#" onclick="history.back();" class="back-button">Back</a>
+    <h1 class="title-large">{{ genre.name }}</h1>
+
+    <h2 class="title-large">Top 20 Artists</h2> <!-- Titolo per gli artisti -->
+    <div>
+        {% for artist in artists %}
+            <a href="{% url 'public_artist_profile' artist.user.username %}" class="artist-button">{{ artist.name }}</a>
+        {% endfor %}
+    </div>
+
+    <h2 class="title-medium">And some of their Albums</h2> <!-- Titolo per gli album -->
+    <div>
+        {% for album in albums %}
+            <a href="{% url 'view_album' album.artist.user.username album.id %}"
+               class="album-button">{{ album.title }}</a>
+        {% endfor %}
+
+    </div>
+
+    <!-- Nuova sezione con la scritta e il link per la ricerca -->
+    <p class="info-text">
+        Your favorite artist is not here? <a href="{% url 'search_profiles' %}" class="search-link">Search him</a>.
+    </p>
+{% endblock %}

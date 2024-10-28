@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add song - {{ album.title }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+</head>
+<body>
+<header>
+    <h1>Add song in {{ album.title }}</h1>
+</header>
+<main>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Mostra tutti i campi del form escluso il campo file mp3 -->
+        {% for field in form %}
+            {% if field.name != 'mp3_file' and field.name != 'album' %}
+                <p>
+                    {{ field.label_tag }}<br>
+                    {{ field }}
+                </p>
+            {% endif %}
+        {% endfor %}
+
+        <!-- Aggiungi il campo 'mp3_file' manualmente per permettere di caricare il file -->
+        <p>
+            {{ form.mp3_file.label_tag }}<br>
+            {{ form.mp3_file }}
+        </p>
+
+        <!-- Checkbox per decidere se caricare il file mp3 -->
+        <p>
+            <input type="checkbox" id="upload_mp3" name="upload_mp3" value="true">
+            <label for="upload_mp3">Upload mp3 file</label>
+            <input type="hidden" name="album" value="{{ album.pk }}">
+
+
+        </p>
+
+        <button type="submit">Save</button>
+    </form>
+    <script>
+        document.getElementById('{{ form.mp3_file.id_for_label }}').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                jsmediatags.read(file, {
+                    onSuccess: function (tag) {
+                        const tags = tag.tags;
+                        document.getElementById('id_title').value = tags.title || '';
+                        document.getElementById('id_track_index').value = tags.track ? tags.track.split('/')[0] : '';
+                        document.getElementById('id_side').value = tags.part_of_a_set || '1';
+
+                        // Aggiungi qui altre proprietà che vuoi estrarre dai tag
+
+                        // Opzionalmente, estrai la durata dal file audio se necessario
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const reader = new FileReader();
+
+                        reader.onload = function (event) {
+                            audioContext.decodeAudioData(event.target.result, function (buffer) {
+                                const duration = buffer.duration;
+                                document.getElementById('id_duration').value = duration.toFixed(2);
+                            });
+                        };
+
+                        reader.readAsArrayBuffer(file);
+                    },
+                    onError: function (error) {
+                        console.error('Error reading tags:', error);
+                    }
+                });
+            }
+        });
+    </script>
+</main>
+</body>
+</html>

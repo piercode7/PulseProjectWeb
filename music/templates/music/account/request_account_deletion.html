@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Request Account Deletion</title>
+    <style>
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        input[type="password"] {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 300px;
+        }
+
+        button[type="submit"] {
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #c82333;
+        }
+
+        .description {
+            margin-top: 10px;
+            margin-bottom: 20px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<h1>Request Account Deletion</h1>
+<p class="description">To delete your account, please enter your password below. A confirmation email will be sent to
+    your registered email address. Follow the instructions in the email to complete the account deletion process.</p>
+
+<form method="post">
+    {% csrf_token %}
+    <label for="password">Enter your password to confirm:</label>
+    <input type="password" name="password" required>
+    <button type="submit">Request Deletion</button>
+</form>
+
+<!-- Pulsante Back per tornare indietro -->
+<button class="btn-back" onclick="history.back()">Back</button>
+</body>
+</html>
